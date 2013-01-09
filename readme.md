@@ -70,7 +70,7 @@ PHP >= 5.3
 
     <html>
       <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="UTF-8" />
         <link rel="stylesheet" type="text/css" href="global.css" />
       </head>
       <body>
