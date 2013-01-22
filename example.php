@@ -13,7 +13,7 @@ h::set_indent_pattern("  ");
 
 h::html(function(){
   h::head(function(){
-    h::meta(array("http-equiv"=>"Content-Type", "content"=>"text/html; charset=UTF-8"));
+    h::meta(array("charset"=>"UTF-8"));
     h::link(array("rel"=>"stylesheet", "type"=>"text/css", "href"=>"global.css"));
   });
   h::body(function(){

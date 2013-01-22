@@ -23,7 +23,7 @@ PHP >= 5.3
 
     h::html(function(){
       h::head(function(){
-        h::meta(array("http-equiv"=>"Content-Type", "content"=>"text/html; charset=UTF-8"));
+        h::meta(array("charset"=>"UTF-8"));
         h::link(array("rel"=>"stylesheet", "type"=>"text/css", "href"=>"global.css"));
       });
       h::body(function(){
@@ -70,7 +70,7 @@ PHP >= 5.3
 
     <html>
       <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta charset="UTF-8" />
         <link rel="stylesheet" type="text/css" href="global.css" />
       </head>
       <body>
