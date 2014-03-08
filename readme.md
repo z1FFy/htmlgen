@@ -125,3 +125,8 @@ PHP >= 5.3
 
     $ cd htmlgen
     $ php example.php
+
+
+## LICENSE
+
+[BSD 3-clause](https://github.com/naomik/htmlgen/blob/master/LICENSE)
