@@ -2,12 +2,12 @@
 
 require "lib.htmlgen.php";
 
-$table_data = array(
+h::set_variable("table_data", array(
   "foo" => "bar",
   "hello" => "world",
   "123" => "456",
   "abc" => "xyz"
-);
+));
 
 h::set_indent_pattern("  ");
 
@@ -34,8 +34,7 @@ h::html(function(){
       h::comment("now for a table");
       h::table(function(){
         
-        # sadly, i'm not sure how to get around this at the moment :(  help me make this awesome
-        global $table_data;
+        $table_data = h::get_variable('table_data', array());
         
         h::tr(array("class"=>"header"), function(){
           h::th("key");
@@ -52,5 +51,3 @@ h::html(function(){
     });
   });
 });
-
-?>
