@@ -2,111 +2,105 @@
 
 namespace htmlgen;
 
-function is_assoc($xs): bool {
-  return is_array($xs) && array_some('is_string', array_keys($xs));
-}
+const VOID_ELEMENTS = [
+  'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input',
+  'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
+];
 
-function array_kmap(callable $f, $xs): array {
-  return array_map(function ($k) use ($f, $xs) {
-    return call_user_func($f, $k, $xs[$k]);
-  }, array_keys($xs));
-}
-
-function array_some(callable $f, $xs): bool {
-  foreach ($xs as $x)
-    if (call_user_func($f, $x) === true)
-      return true;
-  return false;
-}
-
-function renderVoidElement(string $tag, array $attributes): string {
-  return sprintf(
-    '<%s%s>',
-    $tag,
-    renderAttributes($attributes)
-  );
-}
-
-function renderElement(string $tag, array $attributes, array $children): string {
-  return sprintf(
-    '<%s%s>%s</%s>',
-    $tag,
-    renderAttributes($attributes),
-    renderChildren($children),
-    $tag
-  );
-}
-
-function renderAttributes(array $attributes): string {
-  if (empty($attributes)) return '';
-  return sprintf(' %s', join(' ', array_kmap('\htmlgen\renderAttribute', $attributes)));
-}
-
-function renderAttribute($attribute, $value): string {
-  if (is_int($attribute))
-    return (string) $value;
-  else
-    return sprintf('%s="%s"', $attribute, $value);
-}
-
-function renderChildren($child): string {
-  if (is_array($child))
-    return join('', array_map('\htmlgen\renderChildren', $child));
-  else
-    return (string) $child;
-}
-
+// PUBLIC API
 function render(...$children) {
   echo renderChildren($children);
 }
 
-class HtmlElement {
-  private $tag;
-  private $attributes;
-  private $children;
-
-  static public $voidElements = [
-    'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input',
-    'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'
-  ];
-
-  public function __construct(string $tag, array $attributes, array $children) {
-    $this->tag = $tag;
-    $this->attributes = $attributes;
-    $this->children = $children;
-  }
-
-  public function __toString(): string {
-    if ($this->isVoidElement($this->tag))
-      return renderVoidElement($this->tag, $this->attributes);
-    else
-      return renderElement($this->tag, $this->attributes, $this->children);
-  }
-
-  private function isVoidElement($tag) {
-    return in_array($tag, self::$voidElements);
-  }
+function html(string $tag, ...$children): RawString {
+  if (\count($children) > 0 && is_assoc($children[0]))
+    return raw(_renderElement($tag, $children[0], \array_slice($children, 1)));
+  else
+    return raw(_renderElement($tag, [], $children));
 }
 
-class html {
-  static public function __callStatic($tag, $args){
-    if (is_assoc($args[0]))
-      return new HtmlElement($tag, $args[0], array_slice($args, 1));
-    else
-      return new HtmlElement($tag, [], $args);
-  }
+function map(array $xs, callable $f): array {
+  return array_kmap(function($k, $v) use ($f) {
+    return \call_user_func($f, $v, $k);
+  }, $xs);
+}
 
-  static public function doctype() {
-    return '<!DOCTYPE html>';
-  }
+function raw(string $str): RawString {
+  return new RawString($str);
+}
 
-  static public function comment($text) {
-    return sprintf('<!-- %s -->', $text);
-  }
+function renderAttributes(array $attributes): string {
+  if (\count($attributes) === 0) return '';
+  return \sprintf(' %s', \join(' ', array_kmap('\htmlgen\_renderAttribute', $attributes)));
+}
 
-  static public function _map(array $xs, callable $f): array {
-    return array_kmap(function($k, $v) use ($f) {
-      return call_user_func($f, $v, $k);
-    }, $xs);
-  }
+function renderChildren($child): string {
+  if (\is_array($child))
+    return raw(\join('', \array_map('\htmlgen\renderChildren', $child)));
+  elseif (\is_string($child))
+    return htmlentities($child, ENT_HTML5);
+  else
+    return $child;
+}
+
+// UTILITIES
+function isVoidElement(string $tag): bool {
+  return \in_array($tag, VOID_ELEMENTS);
+}
+
+function is_assoc($xs): bool {
+  return \is_array($xs) && array_some('is_string', \array_keys($xs));
+}
+
+function array_kmap(callable $f, array $xs): array {
+  return \array_map(function ($k, $v) use ($f) {
+    return \call_user_func($f, $k, $v);
+  }, \array_keys($xs), \array_values($xs));
+}
+
+function array_some(callable $f, array $xs): bool {
+  foreach ($xs as $x)
+    if (\call_user_func($f, $x) === true)
+      return true;
+  return false;
+}
+
+// PRIVATE API
+class RawString {
+  public function __construct(string $x) { $this->value = $x; }
+  public function __toString(): string { return $this->value; }
+}
+
+function _renderElement(string $tag, array $attributes, array $children): string {
+  if (function_exists("\\htmlgen\\elements\\{$tag}"))
+    return \call_user_func("\\htmlgen\\elements\\{$tag}", $attributes, $children);
+  elseif (isVoidElement($tag))
+    return _renderVoidElement($tag, renderAttributes($attributes));
+  else
+    return _renderFullElement($tag, renderAttributes($attributes), renderChildren($children));
+}
+
+function _renderFullElement(string $tag, string $attributes, string $children): string {
+  return \sprintf('<%1$s%2$s>%3$s</%1$s>', $tag, $attributes, $children);
+}
+
+function _renderVoidElement(string $tag, string $attributes): string {
+  return \sprintf('<%s%s>', $tag, $attributes);
+}
+
+function _renderAttribute($attribute, $value): string {
+  if (is_int($attribute))
+    return (string) $value;
+  else
+    return \sprintf('%s="%s"', $attribute, $value);
+}
+
+namespace htmlgen\elements;
+
+function doctype(array $attributes, array $children): string {
+  return '<!DOCTYPE html>';
+}
+
+function comment(array $attributes, array $children): string {
+  return \sprintf('<!-- %s -->', \htmlgen\renderChildren($children));
 }

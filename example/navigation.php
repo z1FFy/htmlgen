@@ -1,6 +1,7 @@
 <?php
 
-use htmlgen\html as h;
+use function htmlgen\html as h;
+use function htmlgen\map as map;
 
 $links = [
   'home' => '/',
@@ -11,11 +12,11 @@ $links = [
   'bees' => '/bees'
 ];
 
-return h::nav(
-  h::ul(
-    h::_map($links, function($text, $href) { return
-      h::li(
-        h::a(['href'=>$href], $text)
+return h('nav',
+  h('ul',
+    map($links, function($href, $text) { return
+      h('li',
+        h('a', ['href'=>$href], $text)
       );
     })
   )

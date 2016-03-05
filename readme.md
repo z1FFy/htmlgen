@@ -37,12 +37,12 @@ So much better now...
 ```php
 // version 2.0
 // cuddle. swoon.
-h::html(
-  h::head(
-    h::meta(['charset'=>'UTF-8']),
-    h::link(['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'global.css'])
+h('html',
+  h('head',
+    h('meta', ['charset'=>'UTF-8']),
+    h('link', ['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'global.css'])
   })
-  h::body( ...
+  h('body',  ...
 ```
 
 Remember how hard it was to get data into the view too?
@@ -72,15 +72,15 @@ So much better now...
 ```php
 // version 2.0
 // embrace. kiss.
-h::table(
-  h::tr(['class'=>'header'],
-    h::th('key'),
-    h::th('value')
+h('table',
+  h('tr', ['class'=>'header'],
+    h('th', 'key'),
+    h('th', 'value')
   ),
-  h::_map($table_data, function ($v,$k) { return
-    h::tr(
-      h::td($k),
-      h::td($v)
+  map($table_data, function ($v,$k) { return
+    h('tr',
+      h('td', $k),
+      h('td', $v)
     )
   })
 );
@@ -95,23 +95,28 @@ the type hinting right now. I'm going to make a `PHP 5.4` version too.
 API
 ---
 
-**h::**<_tag_> **(** [`assoc` <_$attributes_>,] `mixed` <..._$children_> **)** : `string` &mdash;
-more docs on this coming soon
+**h** **(** `string` <_tag_> [, `assoc` <_$attributes_>], `mixed` <..._$children_> **)** : `RawString` &mdash;
+main constructor. more docs on this coming soon.
 
-**h::_map** **(** `array` _$xs_ **,** `callable` {(_$v_, _$k_): `string`} **):** `array` &mdash;
+**map** **(** `array` _$xs_ **,** `callable` {(_$v_, _$k_): `string`} **):** `array` &mdash;
 this exists because `array_map` doesn't pass in array keys by default. this is very helpful.
 
-**h::render** **(** `mixed` <..._$children_> **)** : `void` &mdash;
+**render** **(** `mixed` <..._$children_> **)** : `void` &mdash;
 this is probably not even a necessary function. it's just nicer to use this in
 the root template instead of having to `echo` once for the doctype and once for
 the `<html>` root node.
 
+**raw** **(** `string` <_$html_>**):** `RawString` &mdash;
+all child strings passed to `h` will automatically have html entities encoded
+using `htmlentities($str, ENT_HTML5)`. If you would like to bypass encoding, you
+can wrap a string using this function.
+
 WARNINGS
 --------
 
-* The default behavior will be display **html entities only**. A special wrapper
-  will be required to output HTML strings. Currently this is not enforced. (Note
-  the `&` in the output of the provided example code).
+* The default behavior will be display **html entities only**. A special string
+  wrapper is required to output raw HTML strings. Guess what that helper is
+  called? It's called `raw`. I already said that above. C'mon.
 
 Code example
 ------------
@@ -119,29 +124,29 @@ Code example
 **example/index.js**
 
 ```php
-<?php
-
 require '../htmlgen.php';
-use htmlgen\html as h;
 
-htmlgen\render(
-  h::doctype(),
-  h::html(
-    h::head(
-      h::meta(['charset'=>'UTF-8']),
-      h::link(['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css'])
+use function htmlgen\html as h;
+use function htmlgen\render;
+
+render(
+  h('doctype'),
+  h('html',
+    h('head',
+      h('meta', ['charset'=>'UTF-8']),
+      h('link', ['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css'])
     ),
-    h::body(
-      h::header(
+    h('body',
+      h('header',
         require './navigation.php'
       ),
-      h::main(
+      h('main',
         require './body.php'
       ),
-      h::footer(
+      h('footer',
         require './footer.php'
       ),
-      h::script(['src'=>'/main.js'])
+      h('script', ['src'=>'/main.js'])
     )
   )
 );
@@ -150,9 +155,8 @@ htmlgen\render(
 **example/navigation.php**
 
 ```php
-<?php
-
-use htmlgen\html as h;
+use function htmlgen\html as h;
+use function htmlgen\map as map;
 
 $links = [
   'home' => '/',
@@ -163,11 +167,11 @@ $links = [
   'bees' => '/bees'
 ];
 
-return h::nav(
-  h::ul(
-    h::_map($links, function($text, $href) { return
-      h::li(
-        h::a(['href'=>$href], $text)
+return h('nav',
+  h('ul',
+    map($links, function($href, $text) { return
+      h('li',
+        h('a', ['href'=>$href], $text)
       );
     })
   )
@@ -177,9 +181,9 @@ return h::nav(
 **example/body.php**
 
 ```php
-<?php
-
-use htmlgen\html as h;
+use function htmlgen\html as h;
+use function htmlgen\map;
+use function htmlgen\raw;
 
 $beeData = [
   'pop' => 'yup',
@@ -191,34 +195,38 @@ $beeData = [
 ];
 
 return [
-  h::h1('Hello from HtmlGgen'),
-  h::comment('really cool and thought-provoking article'),
-  h::article(
-    h::h2('All about honey'),
-    h::p('Did you know that bees are responsible for making honey ?'),
-    h::p('It\'s a wonder more people don\'t like bees !'),
-    h::table(
-      h::thead(
-        h::tr(
-          h::td('item'),
-          h::td('do bees like it?')
+  h('h1', 'Hello from HtmlGgen'),
+  h('comment', 'really cool and thought-provoking article'),
+  h('article',
+    h('h2', 'All about honey'),
+    h('img', ['src'=>'/busybeehive.png', 'alt'=>'bees like to keep busy!', 'width'=>300, 'height'=>100]),
+    h('p', 'Did you know that bees are responsible for making honey ?'),
+    h('p', 'It\'s a wonder more people don\'t like bees !'),
+    h('p', 'Bees are > htmlentities'),
+    // if you really must output HTML, you can use the `raw` utility
+    h('p', raw('Raw honey is the <strong>best</strong>')),
+    h('table',
+      h('thead',
+        h('tr',
+          h('td', 'item'),
+          h('td', 'do bees like it?')
         )
       ),
-      h::tbody(
-        h::_map($beeData, function($value, $key) { return
-          h::tr(
-            h::td($key),
-            h::td($value)
+      h('tbody',
+        map($beeData, function($value, $key) { return
+          h('tr',
+            h('td', $key),
+            h('td', $value)
           );
         })
       )
     ),
-    h::aside('Did you know that queen bees come from larvae that are overfed with royal jelly ?')
+    h('aside', 'Did you know that queen bees come from larvae that are overfed with royal jelly ?')
   ),
-  h::comment('newsletter signup form'),
-  h::form(['action'=>'#subscribe'],
-    h::input(['name'=>'email', 'autofocus']),
-    h::input(['type'=>'button', 'value'=>'Get Bee News !'])
+  h('comment', 'newsletter signup form'),
+  h('form', ['action'=>'#subscribe'],
+    h('input', ['name'=>'email', 'autofocus']),
+    h('input', ['type'=>'button', 'value'=>'Get Bee News !'])
   )
 ];
 ```
@@ -226,11 +234,11 @@ return [
 **example/footer.php**
 
 ```php
-<?php
+use function htmlgen\html as h;
 
-use htmlgen\html as h;
-
-return h::p('Thanks for your interest in cats & donuts and stuff !');
+// notice "&" will automatically be converted to "&amp;"
+// this behavior protects you from malicious user input
+return h('p', 'Thanks for your interest in cats & donuts and stuff !');
 ```
 
 Output
@@ -239,23 +247,26 @@ Output
 ```html
 <!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet"
 type="text/css" href="/main.css"></head><body><header><nav><ul><li><a
-href="home">/</a></li><li><a href="cats">/cats</a></li><li><a
-href="milk">/milk</a></li><li><a href="honey">/honey</a></li><li><a
-href="donuts">/donuts</a></li><li><a
-href="bees">/bees</a></li></ul></nav></header><main><h1>Hello from
+href="/">home</a></li><li><a href="/cats">cats</a></li><li><a
+href="/milk">milk</a></li><li><a href="/honey">honey</a></li><li><a
+href="/donuts">donuts</a></li><li><a
+href="/bees">bees</a></li></ul></nav></header><main><h1>Hello from
 HtmlGgen</h1><!-- really cool and thought-provoking article --><article><h2>All
-about honey</h2><p>Did you know that bees are responsible for making honey
-?</p><p>It's a wonder more people don't like bees
-!</p><table><thead><tr><td>item</td><td>do bees like it?</td></tr></thead><tbody
-><tr><td>pop</td><td>yup</td></tr><tr><td>candy</td><td>sometimes</td></tr><tr><
-td>flowers</td><td>so much</td></tr><tr><td>water</td><td>not really</td></tr><t
-r><td>sand</td><td>indifferent</td></tr><tr><td>donuts</td><td>most
+about honey</h2><img src="/busybeehive.png" alt="bees like to keep busy!"
+width="300" height="100"><p>Did you know that bees are responsible for making
+honey &quest;</p><p>It's a wonder more people don't like bees &excl;</p><p>Bees
+are &gt; htmlentities</p><p>Raw honey is the
+<strong>best</strong></p><table><thead><tr><td>item</td><td>do bees like it&ques
+t;</td></tr></thead><tbody><tr><td>pop</td><td>yup</td></tr><tr><td>candy</td><t
+d>sometimes</td></tr><tr><td>flowers</td><td>so
+much</td></tr><tr><td>water</td><td>not really</td></tr><tr><td>sand</td><td>ind
+ifferent</td></tr><tr><td>donuts</td><td>most
 definitely</td></tr></tbody></table><aside>Did you know that queen bees come
-from larvae that are overfed with royal jelly ?</aside></article><!-- newsletter
-signup form --><form action="#subscribe"><input name="email" autofocus><input
-type="button" value="Get Bee News !"></form></main><footer><p>Thanks for your
-interest in cats & donuts and stuff !</p></footer><script
-src="/main.js"></script></body></html>
+from larvae that are overfed with royal jelly &quest;</aside></article><!--
+newsletter signup form --><form action="#subscribe"><input name="email"
+autofocus><input type="button" value="Get Bee News
+!"></form></main><footer><p>Thanks for your interest in cats &amp; donuts and
+stuff &excl;</p></footer><script src="/main.js"></script></body></html>
 ```
 
 Try it and see!

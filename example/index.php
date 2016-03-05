@@ -1,26 +1,28 @@
 <?php
 
 require '../htmlgen.php';
-use htmlgen\html as h;
 
-htmlgen\render(
-  h::doctype(),
-  h::html(
-    h::head(
-      h::meta(['charset'=>'UTF-8']),
-      h::link(['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css'])
+use function htmlgen\html as h;
+use function htmlgen\render;
+
+render(
+  h('doctype'),
+  h('html',
+    h('head',
+      h('meta', ['charset'=>'UTF-8']),
+      h('link', ['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css'])
     ),
-    h::body(
-      h::header(
+    h('body',
+      h('header',
         require './navigation.php'
       ),
-      h::main(
+      h('main',
         require './body.php'
       ),
-      h::footer(
+      h('footer',
         require './footer.php'
       ),
-      h::script(['src'=>'/main.js'])
+      h('script', ['src'=>'/main.js'])
     )
   )
 );
