@@ -14,6 +14,7 @@ A list of bullet points for people that like bulleted lists:
 * Templating via native PHP `require` (see the provided example)
 * Syntax is roughly the same, but much nicer
 * Code base is 60% smaller
+* No more auto-echoing. Use `h` to send html into other functions
 * Output buffering is gone
 * View helpers like `h::cycle` are gone
 * Data store is no longer necessary. `set_variable` and `get_variable` are gone
