@@ -40,7 +40,7 @@ function renderChildren($child): string {
   elseif (\is_string($child))
     return htmlentities($child, ENT_HTML5);
   else
-    return $child;
+    return raw((string) $child);
 }
 
 // UTILITIES
