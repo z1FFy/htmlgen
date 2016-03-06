@@ -35,10 +35,10 @@ function renderAttributes(array $attributes): string {
 }
 
 function renderChildren($child): string {
-  if (\is_array($child))
-    return raw(\join('', \array_map('\htmlgen\renderChildren', $child)));
-  elseif (\is_string($child))
+  if (\is_string($child))
     return htmlentities($child, ENT_HTML5);
+  elseif (\is_array($child))
+    return raw(\join('', \array_map('\htmlgen\renderChildren', $child)));
   else
     return raw((string) $child);
 }
