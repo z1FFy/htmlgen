@@ -8,8 +8,8 @@ const VOID_ELEMENTS = [
 ];
 
 // PUBLIC API
-function render(...$children) {
-  echo renderChildren($children);
+function render(/*resource*/ $stream, ...$children): int {
+  return fwrite($stream, renderChildren($children));
 }
 
 function html(string $tag, ...$children): RawString {

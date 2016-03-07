@@ -5,7 +5,7 @@ require '../htmlgen.php';
 use function htmlgen\html as h;
 use function htmlgen\render;
 
-render(
+render(STDOUT,
   h('doctype'),
   h('html',
     h('head',
