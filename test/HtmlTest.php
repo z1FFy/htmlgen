@@ -67,8 +67,8 @@ class HtmlTest extends \PHPUnit_Framework_TestCase {
 
   public function test_html_skips_closing_tag_for_void_elements () {
     $expected = [
-      '<area>', '<base>', '<br>', '<col>', '<command>', '<embed>', '<hr>', '<img>', '<input>',
-      '<keygen>', '<link>', '<meta>', '<param>', '<source>', '<track>', '<wbr>'
+      '<area>', '<base>', '<br>', '<col>', '<embed>', '<hr>', '<img>', '<input>',
+      '<link>', '<meta>', '<param>', '<source>', '<track>', '<wbr>'
     ];
     $actual = array_map(function($x) { return (string) html($x); }, VOID_ELEMENTS);
     $this->assertSame($expected, $actual);
