@@ -45,7 +45,7 @@ Remember how hard it was to thread data to the children ?
 ```php
 // version 1.0 required `global` unless `use` was specified on every closure
 h::table(function(){
-  # remember this sad, sad problem? well it's gone in version 2.0
+  // icky global state
   global $table_data;
 
   h::tr(array("class"=>"header"), function(){
@@ -53,6 +53,7 @@ h::table(function(){
     h::th("value");
   });
   foreach($table_data as $k => $v){
+    // verbose function use($k,$v) ...
     h::tr(array("class"=>h::cycle(array("odd", "even"))), function() use($k,$v){
       h::td($k);
       h::td($v);
@@ -85,31 +86,39 @@ version
 API
 ---
 
-**html** **(** `string` <_tag_> [, `assoc` <_$attributes_>], `mixed` <..._$children_> **)** : `RawString` &mdash;
-This is your bread and butter. even though this returns an `htmlgen\RawString`
-object, that is an implementation detail meant for you to ignore. Never write
-tests against this type of check `$html instanceof RawString`. Just know that
-`RawString` can be coerced to a `string` so just treat it as such.
+**html** **(** `string` _tag_ [**,** `assoc` _attributes_]**,** `mixed` **...**_children_ **)** : `RawString`
 
-**map** **(** `array` _$xs_ **,** `callable` λ(_$v_, _$k_): `string` **):** `array` &mdash;
+This is your bread and butter. See the exaples for more help. Reminder:
+`htmlgen\RawString` is an implementation detail and should be ignored. Never
+write tests against this type or check `$html instanceof RawString`. Just know
+that `RawString` can be coerced to a `string` so just treat it as such.
+
+---
+
+**map** **(** `array` _xs_ **,** `callable` **λ(**`mixed` _v_ **,** `mixed` _k_ **):** `string` **):** `array`
+
 This function is very helpful for building lists of nodes from existing data.
 This exists because `array_map` doesn't pass in array keys by default. Also,
 note the order of arguments in this function compared to native `array_map`.
 See the code examples below for more details.
 
-**raw** **(** `string` <_$html_>**):** `RawString` &mdash;
+---
+
+**raw** **(** `string` _html_ **):** `RawString`
+
 All child strings passed to `html` will automatically have html entities encoded
 using `htmlentities($str, ENT_HTML5)`. If you would like to bypass encoding, you
-can wrap a string using this function. Reminder: `htmlgen\RawString` is an
-implementation detail and should be ignored. Treat `raw` as if it returns a
-string and accept that your html entities will be taken care of appropriately.
+can wrap a string using this function.
 
-**render** **(** `resource` _$writableStream_, `mixed` <..._$children_> **)** : `int` &mdash;
+---
+
+**render** **(** `resource` _writableStream_ **,** `mixed` **...**_children_ **)** : `int`
+
 Most people will probably just use `echo html(...)` which is fine, but `render`
 is a bit more flexible as it allows you to render to any writable stream. That
 means `render(STDOUT, html(...))` is effectively the same as `echo html(...)`.
 Use this for writing html to files `render($fd, ...)` or to memroy
-`$mem = fopen('php://memory'); render($mem, ...)`, or skip `render` alotegether
+`$mem = fopen('php://memory'); render($mem, ...)`, or skip `render` altogether
 and just `$html = html(...); doSomething($html);` It's PHP, you can figure it
 out.
 
@@ -246,29 +255,29 @@ return h('p', 'Thanks for your interest in cats & donuts and stuff !');
 Output
 ------
 
+Line wrapping (actual output does not contain line breaks)
+
 ```html
 <!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet"
-type="text/css" href="/main.css"></head><body><header><nav><ul><li><a
-href="/">home</a></li><li><a href="/cats">cats</a></li><li><a
-href="/milk">milk</a></li><li><a href="/honey">honey</a></li><li><a
-href="/donuts">donuts</a></li><li><a
-href="/bees">bees</a></li></ul></nav></header><main><h1>Hello from
-HtmlGgen</h1><!-- really cool and thought-provoking article --><article><h2>All
-about honey</h2><img src="/busybeehive.png" alt="bees like to keep busy!"
-width="300" height="100"><p>Did you know that bees are responsible for making
-honey &quest;</p><p>It's a wonder more people don't like bees &excl;</p><p>Bees
-are &gt; htmlentities</p><p>Raw honey is the
-<strong>best</strong></p><table><thead><tr><td>item</td><td>do bees like it&ques
-t;</td></tr></thead><tbody><tr><td>pop</td><td>yup</td></tr><tr><td>candy</td><t
-d>sometimes</td></tr><tr><td>flowers</td><td>so
-much</td></tr><tr><td>water</td><td>not really</td></tr><tr><td>sand</td><td>ind
-ifferent</td></tr><tr><td>donuts</td><td>most
-definitely</td></tr></tbody></table><aside>Did you know that queen bees come
-from larvae that are overfed with royal jelly &quest;</aside></article><!--
-newsletter signup form --><form action="#subscribe"><input name="email"
-autofocus><input type="button" value="Get Bee News
-!"></form></main><footer><p>Thanks for your interest in cats &amp; donuts and
-stuff &excl;</p></footer><script src="/main.js"></script></body></html>
+type="text/css" href="/main.css"></head><body><header><nav><ul><li><a href="/">
+home</a></li><li><a href="/cats">cats</a></li><li><a href="/milk">milk</a></li>
+<li><a href="/honey">honey</a></li><li><a href="/donuts">donuts</a></li><li><a
+href="/bees">bees</a></li></ul></nav></header><main><h1>Hello from HtmlGgen</h1>
+<!-- really cool and thought-provoking article --><article><h2>All about honey
+</h2><img src="/busybeehive.png" alt="bees like to keep busy!" width="300"
+height="100"><p>Did you know that bees are responsible for making honey &quest;
+</p><p>It's a wonder more people don't like bees &excl;</p><p>Bees are &gt;
+htmlentities</p><p>Raw honey is the <strong>best</strong></p><table><thead><tr>
+<td>item</td><td>do bees like it&quest;</td></tr></thead><tbody><tr><td>pop</td>
+<td>yup</td></tr><tr><td>candy</td><td>sometimes</td></tr><tr><td>flowers</td>
+<td>so much</td></tr><tr><td>water</td><td>not really</td></tr><tr><td>sand</td>
+<td>indifferent</td></tr><tr><td>donuts</td><td>most definitely</td></tr>
+</tbody></table><aside>Did you know that queen bees come from larvae that are
+overfed with royal jelly &quest;</aside></article><!-- newsletter signup form
+--><form action="#subscribe"><input name="email" autofocus><input type="button"
+value="Get Bee News !"></form></main><footer><p>Thanks for your interest in cats
+&amp; donuts and stuff &excl;</p></footer><script src="/main.js"></script>
+</body></html>
 ```
 
 Try it and see!
