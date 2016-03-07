@@ -29,6 +29,9 @@ function raw(string $str): RawString {
   return new RawString($str);
 }
 
+// EXPERIMENTAL PUBLIC API
+// these are not directly tested but can be used to create your own element helpers
+// see htmlgen\elements for examples
 function renderAttributes(array $attributes): string {
   if (\count($attributes) === 0) return '';
   return \sprintf(' %s', \join(' ', array_kmap('\htmlgen\_renderAttribute', $attributes)));
