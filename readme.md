@@ -6,39 +6,32 @@ A lightweight DSL for HTML generation in PHP
 What's new in 2.0 ?
 -------------------
 
-A list of bullet points for people that like bulleted lists:
-
-* Real name, no gimmicks
 * All the magic is gone
-* It's just pure PHP with no funny business.
-* Templating via native PHP `require` (see the provided example)
-* Syntax is roughly the same, but much nicer
+* Version 1 API is completely obsolete
+* No more auto-echoing
+* No more output buffering
+* No more closures for child elements
+* No more explicit data stores/fetches
+* No more pretty printing (for now, at least)
 * Code base is 60% smaller
 * Unit tests
-* No more auto-echoing. Use `h` to send html into other functions
-* Output buffering is gone
-* View helpers like `h::cycle` are gone
-* Data store is no longer necessary. `set_variable` and `get_variable` are gone
-* Pretty printing is out (at least for now)
+* Namespaces
+* Safely encodes all text nodes with `htmlentities`
+* Achieve "templating" via native PHP `require` (see the provided example)
+* User-defined elements
 
-Closures are out. And oh how sweet, too.
+Remember all of the closures ?
 
 ```php
-// version 1.0
-// barf. cough. spew !
+// version 1.0 required closures for all children ...
 h::html(function(){
   h::head(function(){
     h::meta(array("charset"=>"UTF-8"));
     h::link(array("rel"=>"stylesheet", "type"=>"text/css", "href"=>"global.css"));
   });
   h::body(function(){ ...
-```
 
-So much better now...
-
-```php
-// version 2.0
-// cuddle. swoon.
+// version 2.0 variadic interface allows passing as many children as you want
 h('html',
   h('head',
     h('meta', ['charset'=>'UTF-8']),
@@ -47,13 +40,12 @@ h('html',
   h('body',  ...
 ```
 
-Remember how hard it was to get data into the view too?
+Remember how hard it was to thread data to the children ?
 
 ```php
-// version 1.0
-// GAG. BLECH. RETCH.
+// version 1.0 required `global` unless `use` was specified on every closure
 h::table(function(){
-  # sadly, i'm not sure how to get around this at the moment :(  help me make this awesome
+  # remember this sad, sad problem? well it's gone in version 2.0
   global $table_data;
 
   h::tr(array("class"=>"header"), function(){
@@ -67,13 +59,8 @@ h::table(function(){
     });
   }
 });
-```
 
-So much better now...
-
-```php
-// version 2.0
-// embrace. kiss.
+// version 2.0 has no problem accessing data in child nodes
 h('table',
   h('tr', ['class'=>'header'],
     h('th', 'key'),
@@ -92,33 +79,46 @@ Requirements
 ------------
 
 Sorry, but it requires `PHP >= 7` right now. The only real thing causing this is
-the type hinting right now. I'm going to make a `PHP 5.4` version too.
+the type hinting right now. I'll eventually get around to making a `PHP 5.x`
+version
 
 API
 ---
 
-**h** **(** `string` <_tag_> [, `assoc` <_$attributes_>], `mixed` <..._$children_> **)** : `RawString` &mdash;
-main constructor. more docs on this coming soon.
+**html** **(** `string` <_tag_> [, `assoc` <_$attributes_>], `mixed` <..._$children_> **)** : `RawString` &mdash;
+This is your bread and butter. even though this returns an `htmlgen\RawString`
+object, that is an implementation detail meant for you to ignore. Never write
+tests against this type of check `$html instanceof RawString`. Just know that
+`RawString` can be coerced to a `string` so just treat it as such.
 
-**map** **(** `array` _$xs_ **,** `callable` {(_$v_, _$k_): `string`} **):** `array` &mdash;
-this exists because `array_map` doesn't pass in array keys by default. this is very helpful.
-
-**render** **(** `mixed` <..._$children_> **)** : `void` &mdash;
-this is probably not even a necessary function. it's just nicer to use this in
-the root template instead of having to `echo` once for the doctype and once for
-the `<html>` root node.
+**map** **(** `array` _$xs_ **,** `callable` λ(_$v_, _$k_): `string` **):** `array` &mdash;
+This function is very helpful for building lists of nodes from existing data.
+This exists because `array_map` doesn't pass in array keys by default. Also,
+note the order of arguments in this function compared to native `array_map`.
+See the code examples below for more details.
 
 **raw** **(** `string` <_$html_>**):** `RawString` &mdash;
-all child strings passed to `h` will automatically have html entities encoded
+All child strings passed to `html` will automatically have html entities encoded
 using `htmlentities($str, ENT_HTML5)`. If you would like to bypass encoding, you
-can wrap a string using this function.
+can wrap a string using this function. Reminder: `htmlgen\RawString` is an
+implementation detail and should be ignored. Treat `raw` as if it returns a
+string and accept that your html entities will be taken care of appropriately.
+
+**render** **(** `resource` _$writableStream_, `mixed` <..._$children_> **)** : `int` &mdash;
+Most people will probably just use `echo html(...)` which is fine, but `render`
+is a bit more flexible as it allows you to render to any writable stream. That
+means `render(STDOUT, html(...))` is effectively the same as `echo html(...)`.
+Use this for writing html to files `render($fd, ...)` or to memroy
+`$mem = fopen('php://memory'); render($mem, ...)`, or skip `render` alotegether
+and just `$html = html(...); doSomething($html);` It's PHP, you can figure it
+out.
 
 WARNINGS
 --------
 
-* The default behavior will be display **html entities only**. A special string
-  wrapper is required to output raw HTML strings. Guess what that helper is
-  called? It's called `raw`. I already said that above. C'mon.
+* htmlgen displays **html entities only**. A special string wrapper is required
+  to output raw HTML strings. Guess what that helper is called? It's called
+  `raw`. I already said that above. C'mon.
 
 Code example
 ------------
@@ -131,7 +131,7 @@ require '../htmlgen.php';
 use function htmlgen\html as h;
 use function htmlgen\render;
 
-render(
+render(STDOUT,
   h('doctype'),
   h('html',
     h('head',
