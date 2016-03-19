@@ -13,12 +13,13 @@ What's new in 2.0 ?
 * No more closures for child elements
 * No more explicit data stores/fetches
 * No more pretty printing (for now, at least)
-* Code base is 60% smaller
+* Code base is 25% smaller
 * Unit tests
 * Namespaces
 * Safely encodes all text nodes with `htmlentities`
 * Achieve "templating" via native PHP `require` (see the provided example)
 * User-defined elements
+* Lite support for _Zen_-like elements
 
 Remember all of the closures ?
 
@@ -76,12 +77,34 @@ h('table',
 );
 ```
 
+Remember how specifying `id` and `class` for everything was so annoying?
+
+```php
+h('#sidebar.column',
+  h('.section',
+    h('h2.section-title', 'Cat Links'),
+    h('button.btn.btn-large', 'Adopt a cat now !')
+  )
+);
+```
+
+Will now render
+
+```html
+<div id="sidebar" class="column">
+  <div class="section">
+    <h2 class="section-title">Cat Links</h2>
+    <button class="btn btn-large">Adopt a cat now &excl;</button>
+  </div>
+</div>
+```
+
 Requirements
 ------------
 
 Sorry, but it requires `PHP >= 7` right now. The only real thing causing this is
 the type hinting right now. I'll eventually get around to making a `PHP 5.x`
-version
+version. Eventually. Probably.
 
 API
 ---
@@ -117,7 +140,7 @@ can wrap a string using this function.
 Most people will probably just use `echo html(...)` which is fine, but `render`
 is a bit more flexible as it allows you to render to any writable stream. That
 means `render(STDOUT, html(...))` is effectively the same as `echo html(...)`.
-Use this for writing html to files `render($fd, ...)` or to memroy
+Use this for writing html to files `render($fd, ...)` or to memory
 `$mem = fopen('php://memory'); render($mem, ...)`, or skip `render` altogether
 and just `$html = html(...); doSomething($html);` It's PHP, you can figure it
 out.
@@ -136,16 +159,22 @@ Code example
 
 ```php
 require '../htmlgen.php';
+require './htmlgen.extensions.php';
 
 use function htmlgen\html as h;
 use function htmlgen\render;
 
 render(STDOUT,
   h('doctype'),
-  h('html',
+  h('html', ['lang'=>'en'],
     h('head',
-      h('meta', ['charset'=>'UTF-8']),
-      h('link', ['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css'])
+      h('meta', ['charset'=>'utf-8']),
+      h('meta', ['http-equiv'=>'X-UA-Compatible', 'content'=>'IE=edge']),
+      h('meta', ['name'=>'viewport', 'content'=>'width=device-width, initial-scale=1']),
+      h('link', ['rel'=>'stylesheet', 'type'=>'text/css', 'href'=>'/main.css']),
+      h('condition', 'lt IE 9',
+        h('script', ['src'=>'ie.js'])
+      )
     ),
     h('body',
       h('header',
@@ -258,26 +287,29 @@ Output
 Line wrapping (actual output does not contain line breaks)
 
 ```html
-<!DOCTYPE html><html><head><meta charset="UTF-8"><link rel="stylesheet"
-type="text/css" href="/main.css"></head><body><header><nav><ul><li><a href="/">
-home</a></li><li><a href="/cats">cats</a></li><li><a href="/milk">milk</a></li>
-<li><a href="/honey">honey</a></li><li><a href="/donuts">donuts</a></li><li><a
-href="/bees">bees</a></li></ul></nav></header><main><h1>Hello from HtmlGgen</h1>
-<!-- really cool and thought-provoking article --><article><h2>All about honey
-</h2><img src="/busybeehive.png" alt="bees like to keep busy!" width="300"
-height="100"><p>Did you know that bees are responsible for making honey &quest;
-</p><p>It's a wonder more people don't like bees &excl;</p><p>Bees are &gt;
-htmlentities</p><p>Raw honey is the <strong>best</strong></p><table><thead><tr>
-<td>item</td><td>do bees like it&quest;</td></tr></thead><tbody><tr><td>pop</td>
-<td>yup</td></tr><tr><td>candy</td><td>sometimes</td></tr><tr><td>flowers</td>
-<td>so much</td></tr><tr><td>water</td><td>not really</td></tr><tr><td>sand</td>
-<td>indifferent</td></tr><tr><td>donuts</td><td>most definitely</td></tr>
-</tbody></table><aside>Did you know that queen bees come from larvae that are
-overfed with royal jelly &quest;</aside></article><!-- newsletter signup form
---><form action="#subscribe"><input name="email" autofocus><input type="button"
-value="Get Bee News !"></form></main><footer><p>Thanks for your interest in cats
-&amp; donuts and stuff &excl;</p></footer><script src="/main.js"></script>
-</body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta
+http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport"
+content="width=device-width, initial-scale=1"><link rel="stylesheet"
+type="text/css" href="/main.css"><!--[if lt IE 9]><script src="ie.js"></script>
+<![endif]--></head><body><header><nav><ul><li><a href="/">home</a></li><li>
+<a href="/cats">cats</a></li><li><a href="/milk">milk</a></li><li>
+<a href="/honey">honey</a></li><li><a href="/donuts">donuts</a></li><li>
+<a href="/bees">bees</a></li></ul></nav></header><main><h1>Hello from HtmlGgen
+</h1><!-- really cool and thought-provoking article --><article><h2>
+All about honey</h2><img src="/busybeehive.png" alt="bees like to keep busy!"
+width="300" height="100"><p>Did you know that bees are responsible for making
+honey &quest;</p><p>It's a wonder more people don't like bees &excl;</p><p>Bees
+are &gt; htmlentities</p><p>Raw honey is the <strong>best</strong></p><table>
+<thead><tr><td>item</td><td>do bees like it&quest;</td></tr></thead><tbody><tr>
+<td>pop</td><td>yup</td></tr><tr><td>candy</td><td>sometimes</td></tr><tr><td>
+flowers</td><td>so much</td></tr><tr><td>water</td><td>not really</td></tr><tr>
+<td>sand</td><td>indifferent</td></tr><tr><td>donuts</td><td>most definitely
+</td></tr></tbody></table><aside>Did you know that queen bees come from larvae
+that are overfed with royal jelly &quest;</aside></article><!-- newsletter
+signup form --><form action="#subscribe"><input name="email" autofocus><input
+type="button" value="Get Bee News !"></form></main><footer><p>Thanks for your
+interest in cats &amp; donuts and stuff &excl;</p></footer><script
+src="/main.js"></script></body></html>
 ```
 
 Try it and see!
