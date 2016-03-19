@@ -1,7 +1,7 @@
 <?php
 
 namespace htmlgen\test;
-use function \htmlgen\map;
+use function htmlgen\map;
 
 class MapTest extends \PHPUnit_Framework_TestCase {
 

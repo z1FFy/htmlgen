@@ -1,9 +1,9 @@
 <?php
 
 namespace htmlgen\test;
-use function \htmlgen\html;
-use function \htmlgen\raw;
-use function \htmlgen\render;
+use function htmlgen\html;
+use function htmlgen\raw;
+use function htmlgen\render;
 
 function capture(callable $f): array {
   $stream = fopen('php://memory', 'r+');

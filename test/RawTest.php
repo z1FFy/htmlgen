@@ -1,13 +1,14 @@
 <?php
 
 namespace htmlgen\test;
-use \htmlgen\RawString;
-use function \htmlgen\raw;
+use function htmlgen\raw;
 
 class RawTest extends \PHPUnit_Framework_TestCase {
 
-  public function test_raw_returns_a_raw_string () {
-    $this->assertTrue(raw('honey') instanceof RawString);
+  public function test_raw_is_idempotent () {
+    $expected = 'honey';
+    $actual = (string) raw(raw('honey'));
+    $this->assertSame($expected, $actual);
   }
 
   public function test_raw_string_returns_boxed_value_when_cast_to_string () {
