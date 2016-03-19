@@ -1,3 +1,11 @@
+2.1.0
+-----
+
+* feature: zen-like elements
+* feature: children can now be passed as an attribute
+* internal: element data abstraction cleans up code
+* internal: better use of namespaces
+
 2.0.0
 -----
 
