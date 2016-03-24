@@ -149,7 +149,7 @@ out.
 
 Use this when you have an unmaneuverable, unwieldy, clumsy, impure function such
 as 100% of the functions found within WordPress. This will conveniently hijack
-any function that otherwise writes to `STDOUT` and insteand bottles it up in
+any function that otherwise writes to `STDOUT` and instead bottles it up in
 `string`. `capture('the_title')` will return a string instead of echoing. If you
 need to pass arguments, you can `capture('the_title', $postId)` or you can even
 use a lambda, `capture(function($id) { the_title($id); }, $postId)` or
