@@ -30,6 +30,10 @@ function raw(string $str): RawString {
   return new RawString($str);
 }
 
+function capture(callable $f, ...$xs): RawString {
+  \ob_start(); \call_user_func_array($f, $xs); return raw(\ob_get_clean());
+}
+
 namespace htmlgen\util;
 
 function is_assoc($xs): bool {
