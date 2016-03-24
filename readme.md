@@ -145,6 +145,22 @@ Use this for writing html to files `render($fd, ...)` or to memory
 and just `$html = html(...); doSomething($html);` It's PHP, you can figure it
 out.
 
+**capture** **(** `callable` _f_[**,** **...**_xs_] **)** : `RawString`
+
+Use this when you have an unmaneuverable, unwieldy, clumsy, impure function such
+as 100% of the functions found within WordPress. This will conveniently hijack
+any function that otherwise writes to `STDOUT` and insteand bottles it up in
+`string`. `capture('the_title')` will return a string instead of echoing. If you
+need to pass arguments, you can `capture('the_title', $postId)` or you can even
+use a lambda, `capture(function($id) { the_title($id); }, $postId)` or
+`capture(function() use($postId) { the_title($postId); })`. Remember, how I said
+it's just PHP ? It's just PHP. And yes I know `get_the_title` exists. This is
+an example.
+
+Oh yeah, it should go without saying that `capture` is not a magician or a
+mind-reader. It wil **not** automatically encode HTML entities returned from the
+callable. It can (and does) promise not to double encode HTML entities, tho.
+
 WARNINGS
 --------
 
