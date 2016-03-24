@@ -1,3 +1,8 @@
+2.2.0
+-----
+
+* added api: `capture(λ([...array]): void[, ...array]): RawString`
+
 2.1.0
 -----
 
